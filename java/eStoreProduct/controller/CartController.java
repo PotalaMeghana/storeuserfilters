@@ -13,6 +13,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import eStoreProduct.model.custCredModel;
 import eStoreProduct.utility.ProductStockPrice;
+import eStoreProduct.BLL.BLL;
+import eStoreProduct.BLL.BLLClass2;
 import eStoreProduct.DAO.ProductDAO;
 import eStoreProduct.DAO.cartDAO;
 import java.sql.SQLException;
@@ -26,12 +28,16 @@ public class CartController {
 	cartDAO cartimp;
 	private final ProductDAO pdaoimp;
 	List<ProductStockPrice> alist=new ArrayList<>();
+	 BLL bl1;
+     BLLClass2 bl2;
 	//BLLClass obj = new BLLClass();
 	@Autowired
-	public CartController(cartDAO cartdao,ProductDAO productdao)
+	public CartController(cartDAO cartdao,ProductDAO productdao,BLLClass2 bl2,BLL bl1)
 	{
 	    cartimp=cartdao;
 	    pdaoimp=productdao;
+	    this.bl2=bl2;
+		this.bl1=bl1;
 	}	
 	@GetMapping("/addToCart")
 	@ResponseBody
@@ -67,36 +73,55 @@ public class CartController {
 			return "remove from cart";
 		}
 	}
+
+	/*
+	 * @GetMapping("/cartItems") public String userCartItems(Model model,HttpSession
+	 * session) throws NumberFormatException, SQLException {
+	 * //System.out.println("carts called1"); double cartt = 0; //ProductDAO pdao =
+	 * new ProductDAO(); custCredModel cust1 = (custCredModel)
+	 * session.getAttribute("customer"); if(cust1!=null) { List<ProductStockPrice>
+	 * products = cartimp.getCartProds(cust1.getCustId());
+	 * model.addAttribute("products", products); return "cart"; } else { // Set the
+	 * products attribute in the model model.addAttribute("products", alist); return
+	 * "cart"; } }
+	 */
     @GetMapping("/cartItems")
-    public String userCartItems(Model model,HttpSession session)
-            throws NumberFormatException, SQLException {
-        //System.out.println("carts called1");
-        double cartt = 0;
-        //ProductDAO pdao = new ProductDAO();
-        custCredModel cust1 = (custCredModel) session.getAttribute("customer");
-		if(cust1!=null)
-		{        
+	public String userCartItems(@RequestParam(value = "userId", required = true) int cust_id, Model model,
+			HttpSession session) throws NumberFormatException, SQLException {
+		System.out.println("carts called1");
+		custCredModel cust1 = (custCredModel) session.getAttribute("customer");
+		if (cust1 != null) {
 			List<ProductStockPrice> products = cartimp.getCartProds(cust1.getCustId());
-			 model.addAttribute("products", products);
-	        return "cart";
+			bl1.addproducts(products);
+			double cartcost=bl1.getcost(products);
+
+			model.addAttribute("products", products);
+			model.addAttribute("cartcost",cartcost);
+
+            
+			return "cart";
+		} else {
+
+			List<ProductStockPrice> products =bl1.getcart();
+			double cartcost=bl1.getcartcost();
+			model.addAttribute("products", products);
+			model.addAttribute("cartcost",cartcost);
+
+			return "cart";
+
 		}
-		else
-		{ // Set the products attribute in the model
-	        model.addAttribute("products", alist);
-	        return "cart";		        
-		}
-    }
+	}
     @PostMapping("/updateQuantity")
 	@ResponseBody
 	public String quantity(@RequestParam("quantity") int quantity,
 			@RequestParam(value = "productId", required = true) int productId) {
 		
-		System.out.print("hiiiiiiiiiiiii");
-	//Product p=pdaoimp.getProductById(productId);
-         //bl1.updateqty(productId, quantity);
-        //double price=bl1.getcartcost();
+		//System.out.print("hiiiiiiiiiiiii");
+	      ProductStockPrice p=pdaoimp.getProductById(productId);
+         bl1.updateqty(productId, quantity);
+        double price=bl1.getcartcost();
 
-		String priceString = "" ;//+ price;
+		String priceString = "" + price;
 		return priceString;
 	}
 }

@@ -13,7 +13,10 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import eStoreProduct.model.Product;
 import eStoreProduct.model.custCredModel;
+import eStoreProduct.model.productqty;
 import eStoreProduct.utility.ProductStockPrice;
+import eStoreProduct.BLL.BLL;
+import eStoreProduct.BLL.BLLClass2;
 //import eStoreProduct.BLL.BLLClass;
 import eStoreProduct.DAO.ProductDAO;
 import eStoreProduct.DAO.cartDAO;
@@ -29,12 +32,16 @@ import javax.servlet.http.HttpSession;
 @Controller
 public class CustomerController {
 	customerDAO cdao;
+	BLL bl1;
+    BLLClass2 bl2;
 	//BLLClass obj;
 	cartDAO cartimp;
 	@Autowired
-	public CustomerController(cartDAO cartdao,customerDAO customerdao ) {
+	public CustomerController(cartDAO cartdao,customerDAO customerdao,BLLClass2 bl2,BLL bl1 ) {
 		cdao = customerdao;
 		cartimp=cartdao;
+		this.bl2=bl2;
+		this.bl1=bl1;
 		//cartdao1 = cartdao;
 	}
 	@RequestMapping(value = "/profilePage")
@@ -67,16 +74,13 @@ public class CustomerController {
 	
 	@GetMapping("/buycartitems")
 	public String confirmbuycart(Model model, HttpSession session) {
-		//HashMap<Integer, Integer> hm = obj.getItemsqty();
-	//	HashMap<Integer, Integer> h = obj.gethmprice();
-	//	
-		List<ProductStockPrice> products = null;
-		custCredModel cust = (custCredModel) session.getAttribute("customer");
-		//System.out.println(cust.getCustId());
-		model.addAttribute("cust", cust);
-		products = cartimp.getCartProds(cust.getCustId());
+	
+		custCredModel cust1 = (custCredModel) session.getAttribute("customer");
+		List<ProductStockPrice> products = cartimp.getCartProds(cust1.getCustId());
+		List<productqty> prqty =bl1.getproductqtys();
+		model.addAttribute("prqty", prqty);
+
 		model.addAttribute("products", products);
-		//model.addAttribute("h", h);
 
 		return "paymentcart";
 
@@ -104,5 +108,16 @@ public class CustomerController {
 		//cdao.updateshipmentaddress(cust1.getCustId(), shaddr);
 		return "OK";
 
+	}
+	@GetMapping("/paymentoptions")
+	public String orderCreate(Model model) {
+		String orderId = bl2.createRazorpayOrder(100);
+		double var =bl1.getcartcost();
+		//System.out.println("amount in controller "+var);
+		model.addAttribute(orderId);
+		//System.out.println("hiiiiii---" +var);
+		model.addAttribute("amt", var);
+		//model.addAttribute("amt", var);
+		return "payment-options";
 	}
 }

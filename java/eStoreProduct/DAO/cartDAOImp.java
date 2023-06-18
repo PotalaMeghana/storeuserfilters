@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 
+import eStoreProduct.model.ProductRowMapper;
 import eStoreProduct.utility.ProductStockPrice;
 
 @Component
@@ -22,8 +23,9 @@ public class cartDAOImp implements cartDAO {
 	}
 	private String insert_slam_cart = "INSERT INTO slam_cart (c_id,p_id) VALUES (?, ?)";
 	private String delete_slam_cart = "DELETE FROM SLAM_CART WHERE c_id=? AND p_id=?";
-	private String select_cart_products = "SELECT pd.* FROM slam_Products pd, slam_cart sc WHERE sc.c_id = ? AND sc.p_id = pd.prod_id";
-
+	private String select_cart_products = "SELECT 	p.prod_id, p.prod_title, p.prod_brand, p.image_url, p.prod_desc, ps.prod_price FROM \r\n"
+			+ "       slam_Products p, slam_productstock ps,slam_cart sc \r\n"
+			+ "       where p.prod_id = ps.prod_id and sc.c_id = ? AND sc.p_id = p.prod_id";
 	public int addToCart(int productId, int customerId) {
 		int r = jdbcTemplate.update(insert_slam_cart, customerId, productId);
 		if (r > 0) {
@@ -48,7 +50,7 @@ public class cartDAOImp implements cartDAO {
 	public List<ProductStockPrice> getCartProds(int cust_id) {
 		System.out.println(cust_id + " from model");
 		try {
-			List<ProductStockPrice> cproducts = jdbcTemplate.query(select_cart_products, new CartProductRowMapper(prodStockDAO), cust_id);
+			List<ProductStockPrice> cproducts = jdbcTemplate.query(select_cart_products, new ProductRowMapper(prodStockDAO), cust_id);
 			System.out.println(cproducts.toString());
 			return cproducts;
 		} catch (Exception e) {

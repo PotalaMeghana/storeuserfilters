@@ -23,7 +23,9 @@ public class WishlistDAOImp implements WishlistDAO {
 	}
 	private String insert_slam_wishlist = "INSERT INTO slam_wishlist (c_id,p_id) VALUES (?, ?)";
 	private String delete_slam_wishlist = "DELETE FROM slam_wishlist WHERE c_id=? AND p_id=?";
-	private String select_slam_wishlist = "SELECT pd.* FROM slam_Products pd, slam_wishlist sc WHERE sc.c_id = ? AND sc.p_id = pd.prod_id";
+	private String select_slam_wishlist = "SELECT 	p.prod_id, p.prod_title, p.prod_brand, p.image_url, p.prod_desc, ps.prod_price FROM \r\n"
+			+ "       slam_Products p, slam_productstock ps,slam_wishlist sc \r\n"
+			+ "       where p.prod_id = ps.prod_id and sc.c_id = ? AND sc.p_id = p.prod_id";
 
 	public int addToWishlist(int productId, int customerId) {
 		int r = jdbcTemplate.update(insert_slam_wishlist, customerId, productId);
